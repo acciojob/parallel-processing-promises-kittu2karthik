@@ -1,17 +1,5 @@
-//your JS code here. If required.
 const output = document.getElementById("output");
 const btn = document.getElementById("download-images-button");
-
-const loading = `<div id='loading'>
-						<p>Loading</div>
-				  </div>
-`
-
-const error = `<div id='error'>
-						<p>Error</div>
-				  </div>
-`
-
 
 const images = [
   { url: "https://picsum.photos/id/237/200/300" },
@@ -19,31 +7,39 @@ const images = [
   { url: "https://picsum.photos/id/239/200/300" },
 ];
 
-function downloadImage(imageObj){
-	return new Promise((res, rej) => {
-		const image = new Image();
+// Function that returns a Promise when an image loads
+function downloadImage(url) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.src = url;
 
-		image.url = imageObj.url;
-
-		image.onload = () => resolve(img);
-		image.onerror = () => reject();
-		
-	})
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(`Failed to load image: ${url}`);
+  });
 }
 
-function downloadImages(params) {
-	output.innerHMTL = loading;
+// Function to download all images
+function downloadImages() {
+  // Show loading spinner
+  output.innerHTML = `<div id='loading'><p>Loading...</p></div>`;
 
-	const imagePromises = imageUrls.map(downloadImage);
-	 Promise.all(imagePromises)
-    .then((images) => {
+  // Convert images array → array of Promises
+  const imagePromises = images.map((obj) => downloadImage(obj.url));
+
+  // Download all images in parallel
+  Promise.all(imagePromises)
+    .then((loadedImages) => {
+      // Remove loading spinner
       output.innerHTML = "";
 
-      images.forEach((img) => output.appendChild(img));
+      // Append all loaded images to output div
+      loadedImages.forEach((img) => output.appendChild(img));
     })
     .catch((err) => {
-      output.innerHTML = error;
+      // Display error if any image fails
+      output.innerHTML = `<div id='error'><p>${err}</p></div>`;
     });
 }
 
-downloadImages();
+// Add event listener for button click
+btn.addEventListener("click", downloadImages);
